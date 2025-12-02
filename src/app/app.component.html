@@ -1,0 +1,167 @@
+<div class="container">
+  <header>
+    <h1><img src="stetho.svg" alt=""> Prédiction du Diabète Gestationnel</h1>
+    <p class="subtitle">Basé sur un modèle XGBoost (ROC-AUC: 0.9530)</p>
+  </header>
+
+  <main>
+    <div class="form-section" *ngIf="!result">
+      <!-- Glycémies -->
+      <div class="card">
+        <h2 style="display: flex;align-items: center; gap: 5px;"><img src="glucose.svg" alt=""> Glycémies (g/L)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="glycemie_jeune">Glycémie à jeun</label>
+            <input type="number" id="glycemie_jeune" [(ngModel)]="formData.glycemie_jeune" step="0.01" min="0" max="3">
+            <span class="hint">Normal: &lt; 0.92 g/L</span>
+          </div>
+          <div class="form-group">
+            <label for="glycemie_h1">Glycémie H1 (HGPO)</label>
+            <input type="number" id="glycemie_h1" [(ngModel)]="formData.glycemie_h1" step="0.01" min="0" max="3">
+            <span class="hint">Normal: &lt; 1.80 g/L</span>
+          </div>
+          <div class="form-group">
+            <label for="glycemie_h2">Glycémie H2 (HGPO)</label>
+            <input type="number" id="glycemie_h2" [(ngModel)]="formData.glycemie_h2" step="0.01" min="0" max="3">
+            <span class="hint">Normal: &lt; 1.53 g/L</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Poids -->
+      <div class="card">
+        <h2 style="display: flex;align-items: center; gap: 5px;"><img src="poids.svg" alt=""> Poids (kg)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="poids_initial">Poids initial (avant grossesse)</label>
+            <input type="number" id="poids_initial" [(ngModel)]="formData.poids_initial" step="0.1" min="30" max="200">
+          </div>
+          <div class="form-group">
+            <label for="poids">Poids actuel</label>
+            <input type="number" id="poids" [(ngModel)]="formData.poids" step="0.1" min="30" max="200">
+          </div>
+        </div>
+      </div>
+
+      <!-- Tension artérielle -->
+      <div class="card">
+        <h2 style="display: flex;align-items: center; gap: 5px;"><img src="pression.svg" alt=""> Tension artérielle (mmHg)</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="ta_systolique">TA Systolique</label>
+            <input type="number" id="ta_systolique" [(ngModel)]="formData.ta_systolique" min="60" max="250">
+            <span class="hint">Normal: &lt; 140</span>
+          </div>
+          <div class="form-group">
+            <label for="ta_diastolique">TA Diastolique</label>
+            <input type="number" id="ta_diastolique" [(ngModel)]="formData.ta_diastolique" min="40" max="150">
+            <span class="hint">Normal: &lt; 90</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hémoglobine -->
+      <div class="card">
+        <h2 style="display: flex;align-items: center; gap: 5px;"><img src="goutte.svg" alt=""> Hémoglobine</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="hemoglobine">Taux d'hémoglobine (g/dL)</label>
+            <input type="number" id="hemoglobine" [(ngModel)]="formData.hemoglobine" step="0.1" min="5" max="20">
+            <span class="hint">Normal: &gt; 11 g/dL</span>
+          </div>
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" [(ngModel)]="formData.anemie">
+              Anémie diagnostiquée
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Urines -->
+      <div class="card">
+        <h2 style="display: flex;align-items: center; gap: 5px;"><img src="tube.svg" alt=""> Analyse d'urines</h2>
+        <div class="form-grid checkboxes">
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" [(ngModel)]="formData.sucre_urines">
+              Sucre dans les urines (glycosurie)
+            </label>
+          </div>
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" [(ngModel)]="formData.albumine_urines">
+              Albumine dans les urines (protéinurie)
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Autres signes -->
+      <div class="card">
+        <h2 style="display: flex;align-items: center; gap: 5px;"><img src="document.svg" alt=""> Autres informations</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="terme_sa">Terme (SA)</label>
+            <input type="number" id="terme_sa" [(ngModel)]="formData.terme_sa" min="1" max="42">
+          </div>
+          <div class="form-group">
+            <label for="numero_cpn">Numéro CPN</label>
+            <input type="number" id="numero_cpn" [(ngModel)]="formData.numero_cpn" min="1" max="12">
+          </div>
+          <div class="form-group">
+            <label for="hauteur_uterine">Hauteur utérine (cm)</label>
+            <input type="number" id="hauteur_uterine" [(ngModel)]="formData.hauteur_uterine" step="0.1" min="5" max="45">
+          </div>
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" [(ngModel)]="formData.oedemes">
+              Œdèmes des membres inférieurs
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-predict" (click)="predict()" [disabled]="isLoading">
+        <span *ngIf="!isLoading">Analyser le risque</span>
+        <span *ngIf="isLoading">Analyse en cours...</span>
+      </button>
+    </div>
+
+    <!-- Résultat -->
+    <div class="result-section" *ngIf="result">
+      <div class="result-card" [ngClass]="getRiskLevelClass(result.risk_level)">
+        <h2>Résultat de l'analyse</h2>
+
+        <div class="probability">
+          <span class="label">Probabilité de diabète gestationnel</span>
+          <span class="value">{{ (result.probability * 100) | number:'1.1-1' }}%</span>
+        </div>
+
+        <div class="risk-level">
+          <span class="label">Niveau de risque</span>
+          <span class="badge" [ngClass]="getRiskLevelClass(result.risk_level)">
+            {{ getRiskLevelLabel(result.risk_level) }}
+          </span>
+        </div>
+
+        <div class="recommendation">
+          <h3 style="display: flex;align-items: center; gap: 5px;"><img src="lampe.svg" alt=""> Recommandation</h3>
+          <p>{{ result.recommendation }}</p>
+        </div>
+
+        <div class="disclaimer">
+          <p style="display: flex;align-items: center; gap: 5px;"><img src="alert.svg" alt=""> Cette prédiction est basée sur un modèle statistique et ne remplace pas l'avis d'un professionnel de santé.</p>
+        </div>
+      </div>
+
+      <button class="btn-reset" (click)="reset()">
+        Nouvelle analyse
+      </button>
+    </div>
+  </main>
+
+  <footer>
+    <p> &copy; AI4JigueenHealth - 2025</p>
+  </footer>
+</div>
